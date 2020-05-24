@@ -6,7 +6,7 @@ This section covers all the RL Agents that were implemented to solve goal for th
 a graph showing the results of that agents learning in the environment, and references to the papers relevant to that agent.
  
  
-### DDPG
+### DDPG (Deep Deterministic Policy Gradients)
 Explanation of Agent
 
 **Neural Network Architecture:**
