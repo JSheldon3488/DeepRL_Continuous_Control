@@ -3,7 +3,9 @@ import random
 import numpy as np
 import copy
 from collections import deque, namedtuple
+import torch
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class ReplayBuffer:
     """ Fixed Sized Replay buffer for storing and sampling experience tuples """
@@ -20,7 +22,7 @@ class ReplayBuffer:
         self.buffer_size = buffer_size
         self.batch_size = batch_size
         self.seed = random.seed(seed)
-        self.memory = deque(max_len = self.buffer_size)
+        self.memory = deque(maxlen = self.buffer_size)
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
 
     def add(self, state, action, reward, next_state, done):
@@ -29,7 +31,15 @@ class ReplayBuffer:
 
     def sample(self):
         """ Sample batch_size of experiences randomly from memory """
-        return random.sample(self.memory, k=self.batch_size)
+        experiences = random.sample(self.memory, k=self.batch_size)
+
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
+
+        return (states, actions, rewards, next_states, dones)
 
     def __len__(self):
         " Return the current size of internal memory "

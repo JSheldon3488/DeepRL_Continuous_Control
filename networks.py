@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 def hidden_init(layer):
     """ Takes in a network layer and returns a range to use for parameter initialization """
-    fan_in = layer.eeight.data.size()[0]
+    fan_in = layer.weight.data.size()[0]
     lim = 1./ np.sqrt(fan_in)
     return (-lim,lim)
 
@@ -30,7 +30,7 @@ class Actor(nn.Module):
         """ policy network that maps states -> actions """
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        return F.tanh(self.fc3(x))
+        return torch.tanh(self.fc3(x))
 
     def reset_parameters(self):
         """ Initialize or reset parameters for the network """

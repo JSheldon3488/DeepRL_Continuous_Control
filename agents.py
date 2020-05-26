@@ -33,12 +33,12 @@ class DDPG():
 
 
         # Networks
-        self.actor_local = Actor(self.state_size, self.action_size, self.random_seed)
-        self.actor_target = Actor(self.state_size, self.action_size, self.random_seed)
-        self.actor_optimizer = optim.adam(self.actor_local.parameters(), lr = self.lr_actor)
-        self.critic_local = Critic(self.state_size, self.action_size, self.random_seed)
-        self.critic_target = Critic(self.state_size, self.action_size, self.random_seed)
-        self.critic_optimizer = optim.adam(self.critic_local.parameters(), lr = self.lr_critic, weight_decay = self.weight_decay)
+        self.actor_local = Actor(self.state_size, self.action_size, random_seed)
+        self.actor_target = Actor(self.state_size, self.action_size, random_seed)
+        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr = self.lr_actor)
+        self.critic_local = Critic(self.state_size, self.action_size, random_seed)
+        self.critic_target = Critic(self.state_size, self.action_size, random_seed)
+        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr = self.lr_critic, weight_decay = self.weight_decay)
 
         # Noise / Exploration Setup
         self.noise = OUNoise(self.action_size, random_seed)
@@ -56,14 +56,7 @@ class DDPG():
         # Learn
         if len(self.memory) > self.batch_size:
             experiences = self.memory.sample()
-            # Convert to tensor
-            states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(self.device)
-            actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(self.device)
-            rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(self.device)
-            next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(self.device)
-            dones = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None]).astype(np.unit8)).float().to(self.device)
-
-            self.learn(states, actions, rewards, next_states, dones)
+            self.learn(experiences)
 
     def act(self, state, add_noise=True):
         """ Returns actions for given state as per current policy """
@@ -80,18 +73,20 @@ class DDPG():
         """ resets to noise parameters """
         self.noise.reset()
 
-    def learn(self, states, actions, rewards, next_states, dones):
+    def learn(self, experiences):
         """ Update actor and critic networks using a given batch of experiences
 
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
         where:
             actor_target(state) -> action
             critic_target(state, action) -> Q-value"""
+
+        states, actions, rewards, next_states, dones = experiences
         # -------------------- Update Critic -------------------- #
         # Use target networks for getting next actions and q values and calculate q_targets
         next_actions = self.actor_target(next_states)
-        next_q_targets = self.critic_target(next_states, next_states)
-        q_targets = rewards + self.gamma*(next_q_targets*(1-dones))
+        next_q_targets = self.critic_target(next_states, next_actions)
+        q_targets = rewards + (self.gamma*next_q_targets*(1-dones))
         # Compute critic loss (Same as DQN Loss)
         q_expected = self.critic_local(states,actions)
         critic_loss = F.mse_loss(q_expected, q_targets)
