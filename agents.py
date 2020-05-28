@@ -10,7 +10,7 @@ import numpy as np
 class DDPG():
     """ Deep Deterministic Policy Gradients Agent used to interaction with and learn from an environment """
 
-    def __init__(self, state_size: int, action_size: int, random_seed: int):
+    def __init__(self, state_size: int, action_size: int, num_agents: int, random_seed: int):
         """ Initialize a DDPG Agent Object
 
         :param state_size: dimension of state (input)
@@ -19,55 +19,65 @@ class DDPG():
         """
         self.state_size = state_size
         self.action_size = action_size
+        self.num_agents = num_agents
         self.seed = random.seed(random_seed)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.t_step = 0
+        self.update_every = 10
+        self.num_updates = 10
 
         # Hyperparameters
-        self.buffer_size = 100000
-        self.batch_size = 128
+        self.buffer_size = 1000000
+        self.batch_size = 256
         self.gamma = 0.99
         self.tau = 0.001
         self.lr_actor = 0.0001
         self.lr_critic = 0.001
         self.weight_decay = 0
 
-
         # Networks
-        self.actor_local = Actor(self.state_size, self.action_size, random_seed)
-        self.actor_target = Actor(self.state_size, self.action_size, random_seed)
+        self.actor_local = Actor(self.state_size, self.action_size,  random_seed).to(self.device)
+        self.actor_target = Actor(self.state_size, self.action_size, random_seed).to(self.device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr = self.lr_actor)
-        self.critic_local = Critic(self.state_size, self.action_size, random_seed)
-        self.critic_target = Critic(self.state_size, self.action_size, random_seed)
+        self.critic_local = Critic(self.state_size, self.action_size, random_seed).to(self.device)
+        self.critic_target = Critic(self.state_size, self.action_size, random_seed).to(self.device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr = self.lr_critic, weight_decay = self.weight_decay)
+        # Initialize actor and critic networks to start with same parameters
+        self.soft_update(self.actor_local, self.actor_target, 1)
+        self.soft_update(self.critic_local, self.critic_target, 1)
 
         # Noise / Exploration Setup
         self.noise = OUNoise(self.action_size, random_seed)
 
         # Replay Buffer Setup
-        self.memory = ReplayBuffer(self.action_size, self.buffer_size, self.batch_size, random_seed)
+        self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
     def __str__(self):
         return "DDPG_Agent"
 
-    def step(self, state, action, reward, next_state, done):
+    def step(self, states, actions, rewards, next_states, dones):
         """ Save experience in replay memory, and use random sample from buffer to learn. """
-        self.memory.add(state, action, reward, next_state, done)
+        for agent_num in range(self.num_agents):
+            self.memory.add(states[agent_num], actions[agent_num], rewards[agent_num], next_states[agent_num], dones[agent_num])
 
-        # Learn
-        if len(self.memory) > self.batch_size:
-            experiences = self.memory.sample()
-            self.learn(experiences)
+        # Learn num_updates times every "update_every" time step
+        self.t_step += 1
+        if len(self.memory) > self.batch_size and self.t_step%self.update_every == 0:
+            self.t_step = 0
+            for _ in range(self.num_updates):
+                experiences = self.memory.sample()
+                self.learn(experiences)
 
-    def act(self, state, add_noise=True):
+    def act(self, states, epsilon, add_noise=True):
         """ Returns actions for given state as per current policy """
-        state = torch.from_numpy(state).float().to(self.device)
+        states = torch.from_numpy(states).float().to(self.device)
         self.actor_local.eval() # Sets to eval mode (no gradients)
         with torch.no_grad():
-            action = self.actor_local(state).cpu().data.numpy()
+            actions = self.actor_local(states).cpu().data.numpy()
         self.actor_local.train() # Sets to train mode (gradients back on)
-        if add_noise:
-            action += self.noise.sample()
-        return np.clip(action, -1,1)
+        if add_noise and epsilon > np.random.random():
+            actions += [self.noise.sample() for _ in range(self.num_agents)]
+        return np.clip(actions, -1,1)
 
     def reset(self):
         """ resets to noise parameters """
@@ -119,6 +129,6 @@ class DDPG():
         :param tau: update (interpolation) parameter
         """
         for target_param, local_param in zip(target_network.parameters(), local_network.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1-tau)*target_param.data)
+            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
 

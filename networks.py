@@ -10,9 +10,10 @@ def hidden_init(layer):
     lim = 1./ np.sqrt(fan_in)
     return (-lim,lim)
 
+
 class Actor(nn.Module):
     " Actor (Policy) network for action selection "
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, seed, fc1_size=256, fc2_size=128, leak=0.01):
         """ Initialize parameters and build actor network
 
         :param state_size: Dimension of the input state
@@ -21,15 +22,17 @@ class Actor(nn.Module):
         """
         super(Actor,self).__init__()
         self.seed = torch.manual_seed(seed)
-        self.fc1 = nn.Linear(state_size, 400)
-        self.fc2 = nn.Linear(400,300)
-        self.fc3 = nn.Linear(300, action_size)
+        self.leak = leak
+        self.fc1 = nn.Linear(state_size, fc1_size)
+        self.fc2 = nn.Linear(fc1_size,fc2_size)
+        self.fc3 = nn.Linear(fc2_size, action_size)
+        self.bn1 = nn.BatchNorm1d(fc1_size)
         self.reset_parameters()
 
     def forward(self, state):
         """ policy network that maps states -> actions """
-        x = F.relu(self.fc1(state))
-        x = F.relu(self.fc2(x))
+        x = F.leaky_relu(self.bn1(self.fc1(state)), negative_slope=self.leak)
+        x = F.leaky_relu(self.fc2(x), negative_slope=self.leak)
         return torch.tanh(self.fc3(x))
 
     def reset_parameters(self):
@@ -42,7 +45,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     " Critic (Value) network for evaluating actions "
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, seed, fc1_size=256, fc2_size=128, leak=0.01):
         """ Initialize the parameters and set up the network
 
         :param state_size: Dimension of input state
@@ -51,16 +54,18 @@ class Critic(nn.Module):
         """
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
-        self.fc1 = nn.Linear(state_size, 400)
-        self.fc2 = nn.Linear(400+action_size,300)
-        self.fc3 = nn.Linear(300, 1)
+        self.leak = leak
+        self.fc1 = nn.Linear(state_size, fc1_size)
+        self.bn1 = nn.BatchNorm1d(fc1_size)
+        self.fc2 = nn.Linear(fc1_size+action_size, fc2_size)
+        self.fc3 = nn.Linear(fc2_size, 1)
         self.reset_parameters()
 
     def forward(self, state, action):
         """ Critic Network that maps (state,action) pairs -> Q-Values """
-        temp = F.relu(self.fc1(state))
+        temp = F.leaky_relu(self.bn1(self.fc1(state)), negative_slope=self.leak)
         x = torch.cat((temp,action), dim=1)
-        x = F.relu(self.fc2(x))
+        x = F.leaky_relu(self.fc2(x), negative_slope=self.leak)
         return self.fc3(x)
 
     def reset_parameters(self):
