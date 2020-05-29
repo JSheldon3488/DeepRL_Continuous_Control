@@ -6,11 +6,13 @@ import torch.nn.functional as F
 import torch.optim as optim
 import random
 import numpy as np
+from collections import deque
+PATH = "C:\Dev\Python\RL\\Udacity_Continuous_Control"
 
 class DDPG():
     """ Deep Deterministic Policy Gradients Agent used to interaction with and learn from an environment """
 
-    def __init__(self, state_size: int, action_size: int, num_agents: int, random_seed: int):
+    def __init__(self, state_size: int, action_size: int, num_agents: int, epsilon, random_seed: int):
         """ Initialize a DDPG Agent Object
 
         :param state_size: dimension of state (input)
@@ -28,12 +30,15 @@ class DDPG():
 
         # Hyperparameters
         self.buffer_size = 1000000
-        self.batch_size = 256
+        self.batch_size = 128
         self.gamma = 0.99
         self.tau = 0.001
         self.lr_actor = 0.0001
         self.lr_critic = 0.001
         self.weight_decay = 0
+        self.epsilon = epsilon
+        self.epsilon_decay = 0.97
+        self.epsilon_min = 0.005
 
         # Networks
         self.actor_local = Actor(self.state_size, self.action_size,  random_seed).to(self.device)
@@ -54,6 +59,57 @@ class DDPG():
 
     def __str__(self):
         return "DDPG_Agent"
+
+    def train(self, env, brain_name, num_episodes=200, max_time=1000, print_every=10):
+        # --------- Set Everything up --------#
+        scores = []
+        avg_scores = []
+        scores_deque = deque(maxlen=print_every)
+
+        # -------- Simulation Loop --------#
+        for episode_num in range(1, num_episodes + 1):
+            # Reset everything
+            env_info = env.reset(train_mode=True)[brain_name]
+            states = env_info.vector_observations
+            episode_scores = np.zeros(self.num_agents)
+            self.reset_noise()
+            # Run the episode
+            for t in range(max_time):
+                actions = self.act(states, self.epsilon)
+                env_info = env.step(actions)[brain_name]
+                next_states, rewards, dones = env_info.vector_observations, env_info.rewards, env_info.local_done
+                self.step(states, actions, rewards, next_states, dones)
+                episode_scores += rewards
+                states = next_states
+                if np.any(dones):
+                    break
+
+            # -------- Episode Finished ---------#
+            self.epsilon *= self.epsilon_decay
+            self.epsilon = max(self.epsilon, self.epsilon_min)
+            scores.append(np.mean(episode_scores))
+            scores_deque.append(np.mean(episode_scores))
+            avg_scores.append(np.mean(scores_deque))
+            if episode_num % print_every == 0:
+                print(f'Episode: {episode_num} \tAverage Score: {round(np.mean(scores_deque), 2)}')
+                torch.save(self.actor_local.state_dict(), f'{PATH}\checkpoints\{self.__str__()}_Actor_Multiple.pth')
+                torch.save(self.critic_local.state_dict(), f'{PATH}\checkpoints\{self.__str__()}_Critic_Multiple.pth')
+
+        # -------- All Episodes finished Save parameters and scores --------#
+        # Save Model Parameters
+        torch.save(self.actor_local.state_dict(), f'{PATH}\checkpoints\{self.__str__()}_Actor_Multiple.pth')
+        torch.save(self.critic_local.state_dict(), f'{PATH}\checkpoints\{self.__str__()}_Critic_Multiple.pth')
+        # Save mean score per episode (of the 20 agents)
+        f = open(f'{PATH}\scores\{self.__str__()}_Multiple_Scores.txt', 'w')
+        scores_string = "\n".join([str(score) for score in scores])
+        f.write(scores_string)
+        f.close()
+        # Save average scores for 100 window average
+        f = open(f'{PATH}\scores\{self.__str__()}_Multiple_AvgScores.txt', 'w')
+        avgScores_string = "\n".join([str(score) for score in avg_scores])
+        f.write(avgScores_string)
+        f.close()
+        return scores, avg_scores
 
     def step(self, states, actions, rewards, next_states, dones):
         """ Save experience in replay memory, and use random sample from buffer to learn. """
@@ -79,7 +135,7 @@ class DDPG():
             actions += [self.noise.sample() for _ in range(self.num_agents)]
         return np.clip(actions, -1,1)
 
-    def reset(self):
+    def reset_noise(self):
         """ resets to noise parameters """
         self.noise.reset()
 
