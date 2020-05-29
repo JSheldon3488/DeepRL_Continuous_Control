@@ -26,12 +26,14 @@ class Actor(nn.Module):
         self.fc1 = nn.Linear(state_size, fc1_size)
         self.fc2 = nn.Linear(fc1_size,fc2_size)
         self.fc3 = nn.Linear(fc2_size, action_size)
+        self.bn_input = nn.BatchNorm1d(state_size)
         self.bn1 = nn.BatchNorm1d(fc1_size)
         self.reset_parameters()
 
     def forward(self, state):
         """ policy network that maps states -> actions """
-        x = F.leaky_relu(self.bn1(self.fc1(state)), negative_slope=self.leak)
+        x = self.bn_input(state)
+        x = F.leaky_relu(self.bn1(self.fc1(x)), negative_slope=self.leak)
         x = F.leaky_relu(self.fc2(x), negative_slope=self.leak)
         return torch.tanh(self.fc3(x))
 
@@ -56,17 +58,19 @@ class Critic(nn.Module):
         self.seed = torch.manual_seed(seed)
         self.leak = leak
         self.fc1 = nn.Linear(state_size, fc1_size)
-        self.bn1 = nn.BatchNorm1d(fc1_size)
         self.fc2 = nn.Linear(fc1_size+action_size, fc2_size)
         self.fc3 = nn.Linear(fc2_size, 1)
+        self.bn_input = nn.BatchNorm1d(state_size)
+        self.bn1 = nn.BatchNorm1d(fc1_size)
         self.reset_parameters()
 
     def forward(self, state, action):
         """ Critic Network that maps (state,action) pairs -> Q-Values """
-        temp = F.leaky_relu(self.bn1(self.fc1(state)), negative_slope=self.leak)
-        x = torch.cat((temp,action), dim=1)
-        x = F.leaky_relu(self.fc2(x), negative_slope=self.leak)
-        return self.fc3(x)
+        x = self.bn_input(state)
+        x = F.leaky_relu(self.bn1(self.fc1(x)), negative_slope=self.leak)
+        x_a = torch.cat((x,action), dim=1)
+        x_a = F.leaky_relu(self.fc2(x_a), negative_slope=self.leak)
+        return self.fc3(x_a)
 
     def reset_parameters(self):
         """ Initialize or reset parameters for the network """
