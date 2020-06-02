@@ -4,7 +4,6 @@ import numpy as np
 import copy
 from collections import deque, namedtuple
 import torch
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -14,6 +13,7 @@ class ReplayBuffer:
     def __init__(self, buffer_size, batch_size):
         """ Initialize Replay Buffer
 
+        :param buffer_size: size of replay buffer
         :param batch_size: size of training sample
         """
         self.batch_size = batch_size
@@ -43,7 +43,7 @@ class ReplayBuffer:
 
 
 class OUNoise:
-    """ Ornstein-Uhlenbeck Process """
+    """ Ornstein-Uhlenbeck process for generating noise for exploration """
     def __init__(self, action_size, seed, mu=0., theta=0.15, sigma=0.2):
         """ Initialize parameters and noise process """
         self.mu = mu * np.ones(action_size)

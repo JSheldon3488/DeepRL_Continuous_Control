@@ -13,6 +13,7 @@ def hidden_init(layer):
 
 class Actor(nn.Module):
     " Actor (Policy) network for action selection "
+
     def __init__(self, state_size, action_size, seed, fc1_size=256, fc2_size=128, leak=0.01):
         """ Initialize parameters and build actor network
 
