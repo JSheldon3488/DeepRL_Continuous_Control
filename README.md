@@ -8,8 +8,9 @@
 
 ## Introduction
 
-This project trains agents to solve the [Reacher](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) environment. A video of a 10 trained agent
-is below. The rotating green orbs are the goal states, and the agents are the simulated robot arms trying to continuously stay in the goal states.
+This project trains agents to solve the [Reacher](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) environment. To give you an idea
+of what the environment looks like a video of a 10 trained agent is below. The rotating green orbs are the goal states, and the agents are the simulated robot arms trying to continuously stay in the goal states. 
+This project originally comes from the [Udacity Deep Reinforcement Learning Nanodegree](https://www.udacity.com/course/deep-reinforcement-learning-nanodegree--nd893).
 
 <p align="center">
     <img src = "https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif">
@@ -77,4 +78,14 @@ This yields an **average score** for each episode (where the average is over all
 ### Instructions
 
 Follow along in `DDPG_Reacher.ipynb` to watch an untrained agent, then train/see results of training an agent, and finally watch the trained agent act in the environment.
-Details of how the agent is setup can be found in `agents.py`. `networks.py` contains the Deep Neural Networks used for converting states -> actions and (states,actions) -> Q-Values.
+
+#### File Descriptions
+
+ - [DDPG_Reacher.ipynb](https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/DDPG_Reacher.ipynb) This is the notebook for viewing the project in action.
+ - [agents.py](https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/agents.py) This file contains the class for creating an agent that will be able to 
+ act and learn in the environment.
+ - [networks.py](https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/networks.py) This file contains the actor and critic network classes.
+ - [utils.py](https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/utils.py) This file contains the utility classes needed for this projet which include
+ the replay buffer and the class to generate noise.
+ - [report.md](https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/report.md) This file contains a description of the project, the results of the project, and a
+ section of futue ideas for the project.
