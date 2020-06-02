@@ -9,7 +9,7 @@
 ## Introduction
 
 This project trains agents to solve the [Reacher](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) environment. A video of a 10 trained agent
-is below. The rotating green orbs are the goal states, and the agents are the simulated robot arms trying to touch the goal states.
+is below. The rotating green orbs are the goal states, and the agents are the simulated robot arms trying to continuously stay in the goal states.
 
 <p align="center">
     <img src = "https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif">
@@ -27,7 +27,7 @@ is below. The rotating green orbs are the goal states, and the agents are the si
 ### Distributed Training
 
 This project has two separate versions of the Unity environment:
-- The first version contains a single agent.
+- The first version contains a single agent (and is much slower to train).
 - The second version contains 20 identical agents, each with its own copy of the environment.  
 
 The second version is useful for algorithms like [PPO](https://arxiv.org/pdf/1707.06347.pdf), [A3C](https://arxiv.org/pdf/1602.01783.pdf), and [D4PG](https://openreview.net/pdf?id=SyZipzbCb) that use multiple (non-interacting, parallel) copies of the same agent to distribute the task of gathering experience.  
@@ -76,4 +76,5 @@ This yields an **average score** for each episode (where the average is over all
 
 ### Instructions
 
-Follow the instructions in `Continuous_Control.ipynb` to get started with training your own agent!
+Follow along in `DDPG_Reacher.ipynb` to watch an untrained agent, then train/see results of training an agent, and finally watch the trained agent act in the environment.
+Details of how the agent is setup can be found in `agents.py`. `networks.py` contains the Deep Neural Networks used for converting states -> actions and (states,actions) -> Q-Values.
