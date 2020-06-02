@@ -17,6 +17,8 @@ class DDPG():
 
         :param state_size: dimension of state (input)
         :param action_size: dimension of action (output)
+        :param num_agents: number of concurrent agents in the environment
+        :param epsilon: initial value of epsilon for exploration
         :param random_seed: random seed
         """
         self.state_size = state_size
@@ -25,12 +27,12 @@ class DDPG():
         self.seed = random.seed(random_seed)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.t_step = 0
-        self.update_every = 10
-        self.num_updates = 10
 
         # Hyperparameters
         self.buffer_size = 1000000
         self.batch_size = 128
+        self.update_every = 10
+        self.num_updates = 10
         self.gamma = 0.99
         self.tau = 0.001
         self.lr_actor = 0.0001
@@ -40,7 +42,7 @@ class DDPG():
         self.epsilon_decay = 0.97
         self.epsilon_min = 0.005
 
-        # Networks
+        # Networks (Actor: State -> Action, Critic: (State,Action) -> Value)
         self.actor_local = Actor(self.state_size, self.action_size,  random_seed).to(self.device)
         self.actor_target = Actor(self.state_size, self.action_size, random_seed).to(self.device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr = self.lr_actor)
@@ -48,10 +50,10 @@ class DDPG():
         self.critic_target = Critic(self.state_size, self.action_size, random_seed).to(self.device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr = self.lr_critic, weight_decay = self.weight_decay)
         # Initialize actor and critic networks to start with same parameters
-        self.soft_update(self.actor_local, self.actor_target, 1)
-        self.soft_update(self.critic_local, self.critic_target, 1)
+        self.soft_update(self.actor_local, self.actor_target, tau=1)
+        self.soft_update(self.critic_local, self.critic_target, tau=1)
 
-        # Noise / Exploration Setup
+        # Noise Setup
         self.noise = OUNoise(self.action_size, random_seed)
 
         # Replay Buffer Setup
@@ -61,6 +63,15 @@ class DDPG():
         return "DDPG_Agent"
 
     def train(self, env, brain_name, num_episodes=200, max_time=1000, print_every=10):
+        """ Interacts with and learns from a given Unity Environment
+
+        :param env: Unity Environment the agents is trying to learn
+        :param brain_name: Brain for Environment
+        :param num_episodes: Number of episodes to train
+        :param max_time: How long each episode runs for
+        :param print_every: How often in episodes to print a running average
+        :return: Returns episodes scores and 100 episode averages as lists
+        """
         # --------- Set Everything up --------#
         scores = []
         avg_scores = []
@@ -112,11 +123,21 @@ class DDPG():
         return scores, avg_scores
 
     def step(self, states, actions, rewards, next_states, dones):
-        """ Save experience in replay memory, and use random sample from buffer to learn. """
+        """ what the agent needs to do for every time step that occurs in the environment. Takes
+        in a (s,a,r,s',d) tuple and saves it to memeory and learns from experiences. Note: this is not
+        the same as a step in the environment. Step is only called once per environment time step.
+
+        :param states: array of states agent used to select actions
+        :param actions: array of actions taken by agents
+        :param rewards: array of rewards for last action taken in environment
+        :param next_states: array of next states after actions were taken
+        :param dones: array of bools representing if environment is finished or not
+        """
+        # Save experienced in replay memory
         for agent_num in range(self.num_agents):
             self.memory.add(states[agent_num], actions[agent_num], rewards[agent_num], next_states[agent_num], dones[agent_num])
 
-        # Learn num_updates times every "update_every" time step
+        # Learn "num_updates" times every "update_every" time step
         self.t_step += 1
         if len(self.memory) > self.batch_size and self.t_step%self.update_every == 0:
             self.t_step = 0
@@ -125,7 +146,13 @@ class DDPG():
                 self.learn(experiences)
 
     def act(self, states, epsilon, add_noise=True):
-        """ Returns actions for given state as per current policy """
+        """ Returns actions for given states as per current policy. Policy comes from the actor network.
+
+        :param states: array of states from the environment
+        :param epsilon: probability of exploration
+        :param add_noise: bool on whether or not to potentially have exploration for action
+        :return: clipped actions
+        """
         states = torch.from_numpy(states).float().to(self.device)
         self.actor_local.eval() # Sets to eval mode (no gradients)
         with torch.no_grad():
@@ -141,11 +168,12 @@ class DDPG():
 
     def learn(self, experiences):
         """ Update actor and critic networks using a given batch of experiences
-
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
         where:
-            actor_target(state) -> action
-            critic_target(state, action) -> Q-value"""
+            actor_target(states) -> actions
+            critic_target(states, actions) -> Q-value
+        :param experiences: tuple of arrays (states, actions, rewards, next_states, dones)  sampled from the replay buffer
+        """
 
         states, actions, rewards, next_states, dones = experiences
         # -------------------- Update Critic -------------------- #
