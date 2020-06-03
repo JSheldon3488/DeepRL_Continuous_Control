@@ -29,18 +29,18 @@ continuous actions spaces. More details can be read in the paper linked in the l
 
 **Changes to Algorithm:**
 
- - To stabilize the algorithm updates to the actor and critic network are made every `update_every` time steps in the environment. Currently set to 10 but can experiment with different values.
+ - To stabilize the algorithm, updates to the actor and critic network are made every `update_every` time steps in the environment. Currently set to 10 but can experiment with different values.
  - When the actor and critic networks are updated we do `num_updates` minibatch updates. Currently set to 10 but again you can experiement with different values.
- - Added an exploration parameter `Epislon`. This allows us to scale down the noise added later in simulation and therefore do less exploration later in the episode.
+ - Added an exploration parameter `Epsilon`. This allows us to scale down how often noise is added later in the simulation and therefore do less exploration during later episodes.
 
 **Actor Network Architecture:**
-  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33,256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
-  - Layer 2: Fully_Connected (256,128) -> Leaky_Relu (leak=0.01)
-  - Layer 3: Fully_Connected (128, action_size 4) -> tanh 4
+  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33, 256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
+  - Layer 2: Fully_Connected (256, 128) -> Leaky_Relu (leak=0.01)
+  - Layer 3: Fully_Connected (128, action_size 4) -> tanh (4)
   - Output: 4 actions between (-1,1) 
 
 **Critic Network Architecture:**
-  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33,256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
+  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33, 256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
   - Layer 2: Concat (Layer_1_Output + action_size 4) -> Fully_Connected (260,128) -> Leaky_Relu (leak=0.01)
   - Layer 3: Fully_Connected (128, q_value 1)
    - Output: 1 Q_Value
@@ -73,7 +73,7 @@ tuning the hyperparameters and networks you can probably achieve even faster lea
 
 
 ## Future Ideas
- - Tune the hyperparameters to train the network faster.
+ - Tune the hyperparameters to solve the environment faster.
  - Solve the Crawler environment with the same Agent Architecture.
  - Attempt to solve both environments with the same Agent Architectures (not individually tuning hyperparameters).
  
