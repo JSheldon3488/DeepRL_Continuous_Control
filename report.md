@@ -43,15 +43,10 @@ continuous actions spaces. More details can be read in the paper linked in the l
 <img src="images/DDPG_Agent_Multiple.png">
 </p>
 
+
 <p align="center">
     <img src = "images/Trained_Agents.gif">
 </p>
 
-## Comparisons
-This section compares the currently implemented RL Agents.
-
-<p align="center">
-<img src="">
-</p>
 
 ## Future Ideas
