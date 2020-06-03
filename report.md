@@ -11,11 +11,12 @@ Below is details about the environment and a video of 20 untrained agents acting
 
 **Reward:** of +0.1 is provided for each step that the agent's hand (blue orb) is in the goal location. The goal of your agent is to maintain its position at the rotating target location for as many time steps as possible.
 
-**Observation Space:** consists of 33 continuous variables corresponding to position, rotation, velocity, and angular velocities of the arm. 
+**Observation Space:** consists of 33 continuous variables corresponding to position, rotation, velocity, and angular velocities of the arm and goal orb. 
 
 **Action Space:** is a vector with four continuous numbers, corresponding to torque applicable to two joints. Every entry in the action vector should be a number between -1 and 1.
 
-**Goal:** The task is episodic. In order to solve the environment your agent (or agents) must get an average score of +30 over 100 consecutive episodes.
+**Goal:** The task is episodic. In order to solve the environment the agents must get an average score of +30 over 100 consecutive episodes. Every Episode each agent will produce a score
+and those 20 scores will be averaged to get a single episode score.
  
  
 ### Training the Agent: DDPG (Deep Deterministic Policy Gradients)
@@ -26,17 +27,39 @@ continuous actions spaces. More details can be read in the paper linked in the l
     <img src = "https://github.com/JSheldon3488/DeepRL_Continuous_Control/blob/master/images/DDPG_Algorithm.png">
 </p>
 
-**Changes:**
+**Changes to Algorithm:**
 
  - To stabilize the algorithm updates to the actor and critic network are made every `update_every` time steps in the environment. Currently set to 10 but can experiment with different values.
  - When the actor and critic networks are updated we do `num_updates` minibatch updates. Currently set to 10 but again you can experiement with different values.
  - Added an exploration parameter `Epislon`. This allows us to scale down the noise added later in simulation and therefore do less exploration later in the episode.
 
-**Neural Network Architecture:**
+**Actor Network Architecture:**
+  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33,256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
+  - Layer 2: Fully_Connected (256,128) -> Leaky_Relu (leak=0.01)
+  - Layer 3: Fully_Connected (128, action_size 4) -> tanh 4
+  - Output: 4 actions between (-1,1) 
+
+**Critic Network Architecture:**
+  - Layer 1: Batch_Normalize Input_State (33) -> Fully_Connected (33,256) -> Batch_Normalize Output_FC (256) -> Leaky_Relu (leak=0.01)
+  - Layer 2: Concat (Layer_1_Output + action_size 4) -> Fully_Connected (260,128) -> Leaky_Relu (leak=0.01)
+  - Layer 3: Fully_Connected (128, q_value 1)
+   - Output: 1 Q_Value
 
 **Hyperparameters:** 
+ - Replay Buffer Size: 1,000,000
+ - Batch Size: 128
+ - Update Every: 10 (how often in timesteps to update networks)
+ - Number of Updates: 10 (how many times to update per update_every)
+ - Discount Rate Gamma: 0.99 (Q-Value Calculation)
+ - Network Soft Update Rate Tau: 0.001
+ - Learning Rate Actor: 0.0001
+ - Learning Rate Critic: 0.001
+ - Weight Decay: 0
+ - Exploration Rate Epsilon: (start=1, decay=0.97, min=0.005)
 
 **Results:**
+Below is the results of training and a short video of the trained agents interacting in the environment. If you spend more time
+tuning the hyperparameters and networks you can probably achieve even faster learning and better performance.
 
 
 <p align="center">
@@ -50,3 +73,7 @@ continuous actions spaces. More details can be read in the paper linked in the l
 
 
 ## Future Ideas
+ - Tune the hyperparameters to train the network faster.
+ - Solve the Crawler environment with the same Agent Architecture.
+ - Attempt to solve both environments with the same Agent Architectures (not individually tuning hyperparameters).
+ 
