@@ -77,7 +77,7 @@ This yields an **average score** for each episode (where the average is over all
 
 ### Instructions
 
-Follow along in `DDPG_Reacher.ipynb` to watch an untrained agent, then train/see results of training an agent, and finally watch the trained agent act in the environment. If
+To train an agent follow along in `DDPG_Reacher.ipynb`. You can watch an untrained agent, then train/see results of training an agent, and finally watch the trained agent act in the environment. If
 you just want to see a summary of the project check out `report.md`.
 
 #### File Descriptions

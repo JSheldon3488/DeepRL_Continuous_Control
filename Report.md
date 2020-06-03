@@ -58,8 +58,9 @@ continuous actions spaces. More details can be read in the paper linked in the l
  - Exploration Rate Epsilon: (start=1, decay=0.97, min=0.005)
 
 **Results:**
-Below is the results of training and a short video of the trained agents interacting in the environment. If you spend more time
-tuning the hyperparameters and networks you can probably achieve even faster learning and better performance.
+Below is the results of training and a short video of the trained agents interacting in the environment. 
+The agent solves the environment in approximately 115 episodes. The agents is also stable for the next 85 episodes.
+If you spend more time tuning the hyperparameters and networks you can probably achieve even faster learning and better performance.
 
 
 <p align="center">
