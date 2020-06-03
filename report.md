@@ -5,7 +5,9 @@ Starter code and project details can be found [here](https://github.com/udacity/
 The goal of this project is to train an agent to solve the [Reacher](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) environment.
 Below is details about the environment and a video of 20 untrained agents acting in the environment.
 
-<div style="width:360px;max-width:100%;"><div style="height:0;padding-bottom:58.33%;position:relative;"><iframe width="360" height="210" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameBorder="0" src="https://imgflip.com/embed/43v1v9"></iframe></div><p><a href="https://imgflip.com/gif/43v1v9">via Imgflip</a></p></div>
+<p align="center">
+    <img src = "https://imgflip.com/gif/43v1v9">
+</p>
 
 **Reward:** of +0.1 is provided for each step that the agent's hand (blue orb) is in the goal location. The goal of your agent is to maintain its position at the rotating target location for as many time steps as possible.
 
