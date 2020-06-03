@@ -6,7 +6,7 @@ The goal of this project is to train an agent to solve the [Reacher](https://git
 Below is details about the environment and a video of 20 untrained agents acting in the environment.
 
 <p align="center">
-    <img src = "images/Untrained_Agent.gif">
+    <img src = "images/Untrained_Agents.gif">
 </p>
 
 **Reward:** of +0.1 is provided for each step that the agent's hand (blue orb) is in the goal location. The goal of your agent is to maintain its position at the rotating target location for as many time steps as possible.
@@ -37,8 +37,14 @@ continuous actions spaces. More details can be read in the paper linked in the l
 **Hyperparameters:** 
 
 **Results:**
+
+
 <p align="center">
 <img src="images/DDPG_Agent_Multiple.png">
+</p>
+
+<p align="center">
+    <img src = "images/Trained_Agents.gif">
 </p>
 
 ## Comparisons
