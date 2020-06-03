@@ -6,7 +6,7 @@ The goal of this project is to train an agent to solve the [Reacher](https://git
 Below is details about the environment and a video of 20 untrained agents acting in the environment.
 
 <p align="center">
-    <img src = "https://imgflip.com/gif/43v1v9">
+    <img src = "images/Untrained_Agent.gif">
 </p>
 
 **Reward:** of +0.1 is provided for each step that the agent's hand (blue orb) is in the goal location. The goal of your agent is to maintain its position at the rotating target location for as many time steps as possible.
