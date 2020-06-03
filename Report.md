@@ -19,7 +19,7 @@ Below is details about the environment and a video of 20 untrained agents acting
 and those 20 scores will be averaged to get a single episode score.
  
  
-### Training the Agent: DDPG (Deep Deterministic Policy Gradients)
+## Training the Agent: DDPG (Deep Deterministic Policy Gradients)
 [Deep Deterministic Policy Gradients](https://arxiv.org/abs/1509.02971) is an actor-critic algorithm that is used to solve problems with
 continuous actions spaces. More details can be read in the paper linked in the last sentence. The outline of the algorithm is below.
 
@@ -57,7 +57,7 @@ continuous actions spaces. More details can be read in the paper linked in the l
  - Weight Decay: 0
  - Exploration Rate Epsilon: (start=1, decay=0.97, min=0.005)
 
-**Results:**
+## Results:
 Below is the results of training and a short video of the trained agents interacting in the environment. 
 The agent solves the environment in approximately 115 episodes. The agents is also stable for the next 85 episodes.
 If you spend more time tuning the hyperparameters and networks you can probably achieve even faster learning and better performance.
